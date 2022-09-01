@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% load static %}
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@500&display=swap');
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+
+            scrollbar-width: none;
+        }
+    </style>
+
+    <title>Notr | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="">
+    <main class="w-full flex h-screen bg-white">
+        <div
+            class="w-fit max-w-3/12 bg-[#f5f5f5] h-screen border-r-[2px] border-r-[#818181] overflow-y-scroll no-scrollbar pr-8 relative ">
+            <div class="flex items-center mt-[25px] pl-[15px] gap-[14px] sticky">
+                {% if user.photo %}
+                <img class="rounded-full" src="{{ user.photo.url }}"  width="50px" height="50px" />
+                {%else%}
+                <div class=" rounded-full flex items-center justify-center w-16 py-6 px-6 bg-gray-700 text-white text-sm font-medium ">{{ initial|title }}</div>
+                {% endif %}
+                <p class="text-lg text-[#050505] font-bold leading-[31px]">{{user|title}}</p>
+                <button id="logout_btn"><img src="{% static '/images/power-off.png' %}" width="20px" height="20px" /></button>
+            </div>
+
+            <div
+                class="ml-[28px] mt-[38px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                <!-- notes -->
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'normal' %}">
+                    <div class="flex items-center gap-[22px]">
+                        <img src="{% static '/assets/icons/notes (1) 1.svg' %}" />
+                        <p>{{ user_splited_name|title }}'s notes</p>
+                    </div>
+                </a>
+
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'archived' %}">
+                    <div class="flex items-center gap-[22px] ">
+                        <img src="{% static '/assets/icons/archive 1.svg' %}" />
+                        <p class="pl-1">Archived notes</p>
+                    </div>
+                </a>
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'trash' %}">
+                    <div class="flex items-center gap-[22px]">
+                        <img src="{% static '/assets/icons/paper-bin 1.svg' %}" />
+                        <p>Trashed notes</p>
+                    </div>
+            </div>
+            </a>
+
+            <div class="mt-[28px]">
+                <!-- Labels -->
+                <div class="flex ml-[15px] gap-[8px]">
+                    <p class="text-[16px] text-[#8C8C8C] leading-[26px] font-[400]">Labels</p>
+                    <button id="continueBtn"><img src="{% static '/assets/icons/plus (1) 2.svg' %}" /></button>
+                </div>
+
+                <div
+                    class="ml-[28px] mt-[28px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                    {% for items in user_labels %}
+                    <a class="flex  hover:bg-gray-300 p-2" href="{% url 'notr:note-label' items.name %}">
+                        <div class="flex items-center gap-[22px]">
+                            <img src="{% static '/assets/icons/product-development (1) 3.svg' %}" />
+                            <p>{{items.name}}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    <a class="flex  hover:bg-gray-300 p-2" href="#">
+                        <div class="flex items-center gap-[22px]">
+                            <img src="{% static '/assets/icons/folder 1.svg' %}" />
+                            <p>Private</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-[28px] mb-12">
+                <!-- Favourites -->
+                <p class="text-[16px] text-[#8C8C8C] leading-[26px] font-[400] ml-[15px]">Favourites</p>
+                <div
+                    class="ml-[20px] mt-[28px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                    {% for item in user_favorites %}
+                    <div class="flex items-center gap-[12px]">
+                        <img src="{% static '/assets/icons/favorite 4.svg' %}" />
+                        <p>{{item.title}}</p>
+                    </div>
+                    {% empty %}
+                    <div class="flex items-center gap-[12px]">
+                        <p>No Favorites Notes.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="ml-[15px] mt-48 w-full mb-[16px] text-left  bottom-0 left-0  ">
+                <!-- Date -->
+                <p class="text-[10px] text-[#FCA407] leading-[16px] font-medium">Today</p>
+                <p class="text-[16px] text-[#0E0E0E] leading-[21px] font-medium">{{ day }}</p>
+                <div class="flex items-center  justify-between text-[16px] text-[#0E0E0E] leading-[26px] font-bold">
+                    <p>{% now "jS F Y" %}</p>
+                    <a class="mr-8" href="{% url 'accounts:edit-user' user.id %}"><img src="{% static '/assets/icons/settings 3.svg' %}" /></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+
+        <div
+            class="w-fit max-w-4/12 overflow-y-scroll no-scrollbar text-primaryBlack border-r-[2px] border-r-[#818181]">
+            <!-- Search -->
+            <div class=" flex justify-center items-center gap-[20px] py-[30px] border-b border-[#000] px-6 ">
+                    <form>
+                    <input name="query" id="query" value="{{request.GET.search}}"
+                        class="  border-b-2 border-[#C8C8C8] text-center text-[16px] leading-[21px]
+                         text-[#C8C8C8] font-medium w-[329px] h-[40px] "
+                        type="text" placeholder="Search Notes" />
+                    </form>
+                    <button id="edit_btn">
+                        <img class="items-center mt-2" src="{% static '/assets/icons/edit 1.svg' %}" width="20px" height="20px" />
+                    </button>
+                </div>
+            <!-- Grocery List -->
+            {% if type == 'normal' %}
+            {% for note in notes_list %}
+            <div id="notes-info" class="text-lg leading-[31px] font-medium flex flex-col space-y-[10px] ml-[33px] pt-[22px] ">
+                <div class="flex  items-center space-x-[38px] text-[#7B7B7B]">
+                    <p>{{ note.updated_at|timesince|slice:":3"}}</p>
+                    <a href="{% url 'notr:view-note' request.user.id note.id %}"><p class="text-[#0A0505] hover:underline hover:underline-offset-8 hover:decoration-pink-900 ">{{ note.title }}</p></a>
+                </div>
+                <div class="flex  items-center space-x-[27px]">
+                    {% if note.is_pinned %}
+                    <img class="h-[35px] w-[35px]" src="{% static '/assets/icons/pin 3.svg' %}" />
+                    <p class="text-[#B6B6B6] w-[285px] ">{{note.body|striptags|truncatechars:60}}</p>
+                    {% else %}
+                    <p class="text-[#B6B6B6] w-[285px] ml-14 ">{{note.body|striptags|truncatechars:60}}</p>
+                    {% endif %}
+                </div>
+
+                <div id="edit-action" class="hidden justify-center items-center h-[20px] space-x-4 py-4 opacity-75  ">
+                    <div>
+                        <a href="{% url 'notr:archive-note' request.user.id note.id %}" ><abbr title="archived this note"> <img src="{% static '/images/inbox.png' %}" width="20px" height="20px"  /></a>
+                    </div>
+                    <div >
+                       <a href="{% url 'notr:trash-note' request.user.id note.id %}" ><abbr title="trash this note"> <img src="{% static '/images/trash-can.png' %}" width="20px" height="20px" /></a>
+                    </div>
+                    <div >
+                       <a href="{% url 'notr:pin-note' request.user.id note.id %}"> <abbr title="pin action"> <img src="{% static '/images/pin.png'  %}"  width="20px" height="20px"/></a>
+                    </div>
+                </div>
+            </div>
+            <div class="w-[351px] h-0 border-b border-[#000] mt-[36px] ml-[100px]"></div>
+            {% empty %}
+            <div class="flex   items-center h-screen mx-auto space-x-[38px] text-[#7B7B7B]">
+                <p class="text-[#0A0505] mx-auto text-center">
+                    <img class="h-[60px] w-[60px] mx-auto" src="{% static '/images/empty-folder.png' %}" />
+                    No Notes Yet.
+                </p>
+            </div>
+            {% endfor %}
+            {% elif type == 'archived' %}
+            {% for note in archived %}
+            <div id="notes-info" class="text-lg leading-[31px] font-medium flex flex-col space-y-[10px] ml-[33px] pt-[22px]">
+                <div class="flex  items-center space-x-[38px] text-[#7B7B7B]">
+                    <p>{{ note.updated_at|timesince|slice:":3"}}</p>
+                    <p class="text-[#0A0505] ">{{ note.title }}</p>
+                </div>
+                <div class="flex  items-center space-x-[27px]">
+                    {% if note.is_pinned %}
+                    <img class="h-[35px] w-[35px]" src="{% static '/assets/icons/pin 3.svg' %}" />
+                    <p class="text-[#B6B6B6] w-[285px] ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% else %}
+                    <p class="text-[#B6B6B6] w-[285px] ml-14 ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="edit-action" class="hidden justify-center items-center h-[20px] space-x-4 py-4  ">
+                <div>
+                    <a href="{% url 'notr:archive-note' request.user.id note.id %}" ><abbr title="unarchived this note"> <img src="{% static '/images/inbox.png' %}" width="20px" height="20px"/></a>
+                </div>
+                <div >
+                    <a href="{% url 'notr:trash-note' request.user.id note.id %}" ><abbr title="trash this note"> <img src="{% static '/images/trash-can.png' %}" width="20px" height="20px" /></a>
+                 </div>
+                <div >
+                   <a href="#"> <abbr title="edit this note"> <img src="{% static '/images/writing.png'  %}"  width="20px" height="20px"/></a>
+                </div>
+            </div>
+            <div class="w-[351px] h-0 border-b border-[#000] mt-[36px] ml-[100px]"></div>
+            {% empty %}
+            <div class="flex   items-center h-screen mx-auto space-x-[38px] text-[#7B7B7B]">
+
+                <p class="text-[#0A0505] mx-auto text-center">
+                    <img class="h-[60px] w-[60px] mx-auto" src="{% static '/images/empty-folder.png' %}" />
+                    No Archived Notes.
+                </p>
+            </div>
+            {% endfor %}
+            {% elif type == 'trash' %}
+            <p class="text-base leading-[47px] opacity-100 font-medium ml-[48px] mt-[10px]">
+                * Trashed notes get deleted after 7 days 
+            </p>
+            {% for note in trashed %}
+            
+            <div class="text-lg leading-[31px] font-medium flex flex-col space-y-[10px] ml-[33px] pt-[22px]">
+                <div class="flex  items-center space-x-[38px] text-[#7B7B7B]">
+                    <p>{{ note.updated_at|timesince|slice:":3"}}</p>
+                    <p class="text-[#0A0505] ">{{ note.title }}</p>
+                </div>
+                <div class="flex  items-center space-x-[27px]">
+                    {% if note.is_pinned %}
+                    <img class="h-[35px] w-[35px]" src="{% static '/assets/icons/pin 3.svg' %}" />
+                    <p class="text-[#B6B6B6] w-[285px] ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% else %}
+                    <p class="text-[#B6B6B6] w-[285px] ml-14 ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% endif %}
+                </div>
+            </div>
+           
+            <div id="edit-action"  class="hidden justify-center items-center h-[20px] space-x-4 py-4 ">
+                <div >
+                    <a id="delete_btn" ><abbr title="delete permenently"> <img src="{% static '/images/delete.png' %}" width="20px" height="20px" /></a>
+                 </div>
+                <div >
+                   <a href="{% url 'notr:trash-note' request.user.id note.id %}" ><abbr title="untrash this note"> <img src="{% static '/images/trash-can.png' %}" width="20px" height="20px" /></a>
+                </div>
+                
+            </div>
+            <div class="w-[351px] h-0 border-b border-[#000] mt-[36px] ml-[100px]"></div>
+            <div class="delete">
+                <div id="delete-modal" tabindex="-1" class="absolute inset-0 bg-[#F5F5F5]/50 h-screen w-full hidden flex-col z-50">
+                    <div class="relative  mx-auto my-auto p-4 w-full max-w-md h-full md:h-auto">
+                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-300">
+                            <button onclick="closeDialogtrash()" type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-toggle="popup-modal">
+                                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                <span class="sr-only">Close modal</span>
+                            </button>
+                            <div class="p-6 text-center">
+                                <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-700">Are you sure you want to delete this note?</h3>
+                                <button data-modal-toggle="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                                   <a href="{% url 'notr:delete-note' request.user.id note.id %}"> Yes, I'm sure</a>
+                                </button>
+                                <button onclick="closeDialogtrash()" data-modal-toggle="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex   items-center h-screen mx-auto space-x-[38px] text-[#7B7B7B]">
+
+                <p class="text-[#0A0505] mx-auto text-center">
+                    <img class="h-[60px] w-[60px] mx-auto" src="{% static '/images/empty-folder.png' %}" />
+                    No Trash Notes.
+                </p>
+            </div>
+       
+            {% endfor %}
+      
+            {% elif label is not None %}
+            {% for note in label_items  %}
+            <div class="text-lg leading-[31px] font-medium flex flex-col space-y-[10px] ml-[33px] pt-[22px]">
+                <div class="flex  items-center space-x-[38px] text-[#7B7B7B]">
+                    <p>{{ note.updated_at|timesince|slice:":3"}}</p>
+                    <p class="text-[#0A0505] ">{{ note.title }}</p>
+                </div>
+                <div class="flex  items-center space-x-[27px]">
+                    {% if note.is_pinned %}
+                    <img class="h-[35px] w-[35px]" src="{% static '/assets/icons/pin 3.svg' %}" />
+                    <p class="text-[#B6B6B6] w-[285px] ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% else %}
+                    <p class="text-[#B6B6B6] w-[285px] ml-14 ">{{note.body |striptags|truncatechars:60}}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="edit-action"  class="hidden justify-center items-center h-[20px] space-x-4 py-4  ">
+                <div>
+                    <a href="#" ><abbr title="archived this note"> <img src="{% static '/images/inbox.png' %}" width="20px" height="20px"  /></a>
+                </div>
+                <div id="commentBtn">
+                   <a href="#" ><abbr title="trash this note"> <img src="{% static '/images/trash-can.png' %}" width="20px" height="20px" /></a>
+                </div>
+                <div id="shareBtn">
+                   <a href="#"> <abbr title="edit this note"> <img src="{% static '/images/writing.png'  %}"  width="20px" height="20px"/></a>
+                </div>
+            </div>
+            <div class="w-[351px] h-0 border-b border-[#000] mt-[36px] ml-[100px]"></div>
+            {% empty %}
+            <div class="flex   items-center h-screen mx-auto space-x-[38px] text-[#7B7B7B]">
+
+                <p class="text-[#0A0505] mx-auto text-center">
+                    <img class="h-[60px] w-[60px] mx-auto" src="{% static '/images/empty-folder.png' %}" />
+                    No {{label}} Notes.
+                </p>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="text-lg leading-[31px] font-medium flex flex-col space-y-[10px] ml-[33px] pt-[22px]">
+            </div>
+            <!-- <div class="w-[351px] h-0 border-b border-[#000] mt-[36px] ml-[100px]"></div> -->
+        </div>
+
+        <!-- Description -->
+
+        <div class="w-6/12 h-screen relative">
+           
+            {% if notes_list|length == 0  %}
+            <div class="flex flex-col item-center justify-center mx-auto my-auto h-screen ">
+            <img  src="{% static '/images/shuttle.png' %}" width="60px" height="60px" class="opacity-50 mx-auto"/>
+            <p class="text-[36px] leading-[47px] font-medium  mt-[6px] mx-auto opacity-50">Click the note icon to get started.</p>
+            </div>
+            {% else %}
+            <div class="flex flex-col item-center justify-center mx-auto my-auto h-96 ">
+                <img  src="{% static '/images/sticky-notes.png' %}" width="60px" height="60px" class="opacity-50 mx-auto"/>
+                <p class="text-[36px] leading-[47px] font-medium  mt-[6px] mx-auto opacity-50">No note selected.</p>
+                </div>
+            {% endif %}
+        </div>
+        <a href="{% url 'notr:add-note' request.user.id %}"><img class="fixed opacity-75 bottom-[0px] right-0 mr-[44px] mb-[18px]"
+                src="{% static '/assets/icons/add (2) 1.svg' %}" /></a>
+    </main>
+    <!-- Modal -->
+    <div class="absolute inset-0 bg-[#F5F5F5]/50 h-screen w-full flex-col overflow-hidden hidden" id="modal">
+        <div class="h-screen w-1/4 text-end justify-self-end self-end bg-white overflow-hidden hidden"
+            id="commentSection">
+            <div class="flex justify-between px-4 py-2">
+                <h1>Comments</h1>
+                <div>Open</div>
+            </div>
+            <div class="w-full h-[1px] bg-gray-300 my-2"></div>
+            <div class="flex flex-col justify-center items-center h-full w-full px-8">
+                <div class="mx-auto space-y-4 text-center w-full">
+                    <h1>No open Comments yet</h1>
+                    <p class="">Open Comment on this page will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="absolute inset-0 bg-[#F5F5F5]/50 h-screen w-full hidden flex-col" id="label_modal">
+        <div class="px-[42px] py-[21px] text-[20px] mt-20 leading-[26px] w-1/3 mx-auto flex-col bg-white rounded-md "
+            id="label_section">
+            <p class="text-[#ABA7A7] font-medium mb-[15px]">New Label Options</p>
+            <form method="POST" action={% url 'notr:add-label' %}>
+                {% csrf_token %}
+                <div class="border-b-4  mb-[30px] flex flex-col justify-between px-[26px] py-1">
+                <input class="bg-transparent border-none outline-none text-[#838181] text-[16px]"
+                    placeholder="New Label"
+                    name="labels"
+                    id="labels"
+               
+                    
+                     />
+                   
+            </div>
+            <div class="border-b-4  mb-[30px] flex flex-col justify-between px-[26px] py-1">
+                <input class="bg-transparent border-none outline-none text-[#838181] text-[16px]"
+                    placeholder="Label's Description"
+                    name="description"
+                    id-"description"
+                
+                     />  
+            </div>
+            <button class="text-[16px]s bg-[#D3D3D3] rounded-[10px] py-2 px-3">
+                Add Label
+            </button>
+        </form>
+            <div class="  mt-[30px]  flex justify-between px-2 py-1">
+                <p class="text-[#ABA7A7] text-sm mb-[15px]">Your Labels</p>
+            
+        </div>
+        {% for label in user_labels %}
+        <div flex="flex space-y-4 ">
+        <div class="text-xs inline-flex items-center font-bold leading-sm uppercase px-3 py-1 bg-gray-200 text-gray-700 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-hard-drive mr-2">
+            <line x1="22" y1="12" x2="2" y2="12"></line>
+            <path
+                d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z">
+            </path>
+            <line x1="6" y1="16" x2="6.01" y2="16"></line>
+            <line x1="10" y1="16" x2="10.01" y2="16"></line>
+        </svg>
+        {{ label.name}}
+    </div>
+</div>
+    {% endfor %}
+    </div>
+    </div>
+    <div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+        <div class="relative p-4 w-full max-w-md h-full md:h-auto">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-300">
+                <button onclick="closeDialog()" type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-toggle="popup-modal">
+                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-6 text-center">
+                    <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-700">Are you sure you want to logout?</h3>
+                    <button data-modal-toggle="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                       <a href="{% url 'accounts:logout' %}"> Yes, I'm sure</a>
+                    </button>
+                    <button onclick="closeDialog()" data-modal-toggle="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{% static 'scripts/app.js' %}"></script>
+    <script>
+
+    </script>
+</body>
+
+</html>

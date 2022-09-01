@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% load static %}
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@500&display=swap');
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+
+            scrollbar-width: none;
+        }
+    </style>
+
+    <title>Notr | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+    <main class="w-full flex h-screen bg-white">
+        <div
+            class="w-fit max-w-3/12 bg-[#f5f5f5] h-screen border-r-[2px] border-r-[#818181] overflow-y-scroll no-scrollbar pr-8 relative ">
+            <div class="flex items-center mt-[25px] pl-[15px] gap-[14px] sticky">
+                {% if user.photo %}
+                <img class="rounded-full" src="{{ user.photo.url }}" width="50px" height="50px" />
+                {%else%}
+                <div
+                    class=" rounded-full flex items-center justify-center w-16 py-6 px-6 bg-gray-700 text-white text-sm font-medium ">
+                    {{ initial|title }}</div>
+                {% endif %}
+                <p class="text-lg text-[#050505] font-bold leading-[31px]">{{user|title}}</p>
+                <button id="logout_btn"><img src="{% static '/images/power-off.png' %}" width="20px"
+                        height="20px" /></button>
+            </div>
+            <div
+                class="ml-[28px] mt-[38px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                <!-- notes -->
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'normal' %}">
+                    <div class="flex items-center gap-[22px]">
+                        <img src="{% static '/assets/icons/notes (1) 1.svg' %}" />
+                        <p>{{ user_splited_name|title }}'s notes</p>
+                    </div>
+                </a>
+
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'archived' %}">
+                    <div class="flex items-center gap-[22px] ">
+                        <img src="{% static '/assets/icons/archive 1.svg' %}" />
+                        <p class="pl-1">Archived notes</p>
+                    </div>
+                </a>
+                <a class="flex  hover:bg-gray-200 p-2" href="{% url 'notr:note-home' 'trash' %}">
+                    <div class="flex items-center gap-[22px]">
+                        <img src="{% static '/assets/icons/paper-bin 1.svg' %}" />
+                        <p>Trashed notes</p>
+                    </div>
+            </div>
+            </a>
+
+            <div class="mt-[28px]">
+                <!-- Labels -->
+                <div class="flex ml-[15px] gap-[8px]">
+                    <p class="text-[16px] text-[#8C8C8C] leading-[26px] font-[400]">Labels</p>
+                    <button id="continueBtn"><img src="{% static '/assets/icons/plus (1) 2.svg' %}" /></button>
+                </div>
+
+                <div
+                    class="ml-[28px] mt-[28px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                    {% for items in user_labels %}
+                    <a class="flex  hover:bg-gray-300 p-2" href="{% url 'notr:note-label' items.name %}">
+                        <div class="flex items-center gap-[22px]">
+                            <img src="{% static '/assets/icons/product-development (1) 3.svg' %}" />
+                            <p>{{items.name}}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    <a class="flex  hover:bg-gray-300 p-2" href="#">
+                        <div class="flex items-center gap-[22px]">
+                            <img src="{% static '/assets/icons/folder 1.svg' %}" />
+                            <p>Private</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-[28px]">
+                <!-- Favourites -->
+                <p class="text-[16px] text-[#8C8C8C] leading-[26px] font-[400] ml-[15px]">Favourites</p>
+                <div
+                    class="ml-[20px] mt-[28px] flex flex-col gap-[22px] text-[16px] font-[500] leading-[26px] text-[#030303]">
+                    {% for item in user_favorites %}
+                    <div class="flex items-center gap-[12px]">
+                        <img src="{% static '/assets/icons/favorite 4.svg' %}" />
+                        <p>{{item.title}}</p>
+                    </div>
+                    {% empty %}
+                    <div class="flex items-center gap-[12px]">
+                        <p>No Favorites Notes.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="ml-[15px] mt-36 w-full mb-[16px] text-left  bottom-0 left-0  ">
+                <!-- Date -->
+                <p class="text-[10px] text-[#FCA407] leading-[16px] font-medium">Today</p>
+                <p class="text-[16px] text-[#0E0E0E] leading-[21px] font-medium">{{ day }}</p>
+                <div class="flex items-center  justify-between text-[16px] text-[#0E0E0E] leading-[26px] font-bold">
+                    <p>{% now "jS F Y" %}</p>
+                    <a class="mr-8" href="{% url 'accounts:edit-user' user.id %}"><img
+                            src="{% static '/assets/icons/settings 3.svg' %}" /></a>
+                </div>
+            </div>
+        </div>
+        <div class="w-4/6 h-screen relative overflow-scroll no-scrollbar">
+            <div class="mx-auto flex justify-center">
+                {% include 'messages.html' %}
+            </div>
+            <p class="text-[36px] leading-[47px] font-medium ml-[48px] my-[30px]">
+                Edit {{ note.title}}
+            </p>
+            <form method="POST" action="{% url 'notr:edit-note' request.user.id note.id %}">
+                {% csrf_token %}
+                <div class="w-10/12 flex flex-col mb-8 ">
+
+                    <input type="text" id="title" name="title" value="{{ note.title }}"
+                        class=" border-b-2 border-gray-500 text-[16px] w-full leading-[26px] text-[#838181] font-medium mt-[36px] ml-[48px] pl-4  outline-none"
+                        placeholder="Note's title" />
+                    <p class="text-base leading-[47px] opacity-75 font-medium ml-[48px] mt-[10px]">
+                        * Add labels from the available ones created (optional)
+                    </p>
+
+                    <ul
+                        class=" container ml-12 w-full text-sm font-medium text-gray-900 bg-white rounded-lg  sm:flex dark:bg-gray-400 dark:border-gray-600 dark:text-white">
+                        {% for label in user_labels %}
+                        <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-200">
+                            <div class="flex items-center pl-3">
+                                <input id="labels" type="checkbox" name="labels" value="{{ label.name }}" {% if label.name in note.labels %} checked {% endif %} 
+                                    class="w-4 h-4 text-blue-900 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-200 focus:ring-2 dark:bg-gray-200 dark:border-gray-200">
+                                <label for="vue-checkbox-list"
+                                    class="py-3 ml-2 w-full text-base font-bold text-gray-900 dark:text-gray-900">{{label.name}}
+                                    <div class="w-full text-xs ">{{label.description|lower|truncatechars:60}}</div>
+                                </label>
+                            </div>
+                        </li>
+
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class=" container-fluid mx-12">
+                    {{ form.media }}
+                    {{ form }}
+
+                </div>
+        </div>
+
+        </div>
+        </div>
+
+        <button class="bg-[#D3D3D3] text-[18px] leading-[31px] font-[400] text-[#170C0C]  py-2 px-10 my-8 self-end">
+            Edit Note
+        </button>
+        </div>
+        </div>
+        </form>
+
+    </main>
+    <!-- Modal -->
+    <div class="absolute inset-0 bg-[#F5F5F5]/50 h-screen w-full hidden flex-col" id="label_modal">
+        <div class="px-[42px] py-[21px] text-[20px] mt-20 leading-[26px] w-1/3 mx-auto flex-col bg-white rounded-md "
+            id="label_section">
+            <p class="text-[#ABA7A7] font-medium mb-[15px]">New Label Options</p>
+            <form method="POST" action={% url 'notr:add-label' %}>
+                {% csrf_token %}
+                <div class="border-b-4  mb-[30px] flex flex-col justify-between px-[26px] py-1">
+                    <input class="bg-transparent border-none outline-none text-[#838181] text-[16px]"
+                        placeholder="New Label" name="labels" id="labels" />
+
+                </div>
+                <div class="border-b-4  mb-[30px] flex flex-col justify-between px-[26px] py-1">
+                    <input class="bg-transparent border-none outline-none text-[#838181] text-[16px]"
+                        placeholder="Label's Description" name="description" id-"description" />
+                </div>
+                <button class="text-[16px]s bg-[#D3D3D3] rounded-[10px] py-2 px-3">
+                    Add Label
+                </button>
+            </form>
+            <div class="  mt-[30px]  flex justify-between px-2 py-1">
+                <p class="text-[#ABA7A7] text-sm mb-[15px]">Your Labels</p>
+
+            </div>
+            {% for label in user_labels %}
+            <div flex="flex space-y-4 ">
+                <div
+                    class="text-xs inline-flex items-center font-bold leading-sm uppercase px-3 py-1 bg-gray-200 text-gray-700 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="feather feather-hard-drive mr-2">
+                        <line x1="22" y1="12" x2="2" y2="12"></line>
+                        <path
+                            d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z">
+                        </path>
+                        <line x1="6" y1="16" x2="6.01" y2="16"></line>
+                        <line x1="10" y1="16" x2="10.01" y2="16"></line>
+                    </svg>
+                    {{ label.name}}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+
+
+
+
+    <script src="{% static 'scripts/app.js' %}"></script>
+
+</body>
+
+</html>
