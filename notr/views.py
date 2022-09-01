@@ -100,7 +100,7 @@ class CreateNotes(NotesMixin, View):
             else:
 
                 slug = slugify(title) + \
-                    str(time.mktime(datetime.datetime.now().timetuple()))
+                    str(time.mktime(datetime.datetime.now().timetuple())[:5])
                 title = title + '-' + str(check_note.count() + 1)
             # print(list(label))
 
@@ -135,18 +135,62 @@ class EditNote(NotesMixin, View):
             body = form.cleaned_data.get('body')
             label = request.POST.get('labels')
             title = request.POST.get('title')
+            print(label)
 
-            check_note = Notes.objects.filter(title=title)
-            print(check_note.exists())
-            if check_note.exists():
+            check_note = Notes.objects.get(pk=self.kwargs.get('note_id'))
+            print(check_note)
+
+            if check_note:
                 check_note.body = body
-                check_note.labels = label
+                check_note.labels = [label]
                 check_note.title = title
+                # check_note.slug = slugify(title)
                 check_note.save()
 
             success_url = reverse(
-                "notr:view-note", kwargs={"pk": self.request.user.id, "note_id": check_note.id})
+                "notr:view-note", kwargs={"pk": self.request.user.id, "note_id": check_note.pk})
             return HttpResponseRedirect(success_url)
+        else:
+            error = (form.errors.as_text()).split('*')
+            messages.error(self.request, error[len(error)-1])
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+class EditNotePublic(View):
+    def get(self, request, note_id):
+        try:
+            form = EditForm()
+            uid_decode = urlsafe_base64_encode(force_bytes(note_id))
+            note = Notes.objects.get(pk=uid_decode)
+            return render(request, "notr/edit_notes.html", {"pk": self.request.user.id,
+                                                            "note_id": note.id, "note": note, "form": form})
+        except Notes.DoesNotExist:
+            error_url = reverse(
+                "notr:view-note", kwargs={"pk": self.request.user.id, "note_id": note_id})
+            return HttpResponseRedirect(error_url)
+
+    def post(self, request, note_id):
+
+        form = NotesForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            body = form.cleaned_data.get('body')
+            label = request.POST.get('labels')
+            title = request.POST.get('title')
+            # print(label)
+
+            check_note = Notes.objects.get(pk=self.kwargs.get('note_id'))
+            print(check_note)
+
+            if check_note:
+                check_note.body = body
+                check_note.labels = [label]
+                check_note.title = title
+                # check_note.slug = slugify(title)
+                check_note.save()
+
+            return render(request, 'notr/ notes_view.html', {'note': check_note})
+
         else:
             error = (form.errors.as_text()).split('*')
             messages.error(self.request, error[len(error)-1])
@@ -316,17 +360,22 @@ def add_invites(request, notes_id, email,):
         messages.info(request, '')
 
 
-def check_notes_password(request, uid):
+def check_notes_password(request, slug):
 
     try:
         if request.method == 'POST':
-            uid_decode = urlsafe_base64_decode(uid)
-            notes = Notes._normal_objects.get(pk=uid_decode)
+            uid = request.POST.get('uid')
+            # print(111, uid)
+            # uid_decode = urlsafe_base64_decode(uid)
+            # print(11, uid, uid_decode)
+            notes = Notes._normal_objects.get(slug=slug)
             password = request.POST.get('password', '')
             print(check_password(notes.password, password), password)
             if check_password(notes.password, password):
                 messages.success(request, 'Correct✔️')
-                return
+                success_url = reverse(
+                    "notr:notes", args={"uid": uid, "slug": notes.slug})
+                return HttpResponseRedirect(success_url)
 
             messages.error(request, 'InCorrect')
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
@@ -342,7 +391,6 @@ class ViewNotes(View):
     def get(self, request, uid, slug):
         try:
             check = request.GET.get('check', None)
-
             uid_decode = urlsafe_base64_decode(uid)
             notes = Notes._normal_objects.get(pk=uid_decode)
             print(notes.is_shared)
@@ -357,7 +405,7 @@ class ViewNotes(View):
 
                 return render(request, 'notr/ notes_view.html', {'note': notes})
                 # check if not public and  not check
-            if notes.is_shared:
+            if not notes.is_shared:
                 messages.error(
                     request, 'Something went wrong, fetching notes, ask the owner for a recheck, it might be caused, if the owner forgot to share')
                 return render(request, 'notr/notes_view.html',)

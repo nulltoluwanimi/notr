@@ -21,10 +21,13 @@ urlpatterns = [
          views.ViewNoteUser.as_view(), name='view-note'),
     path('share-note/<int:pk>/<int:note_id>/',
          views.ShareNotes.as_view(), name='share-note'),
-    path('notes/<str:uid>/<slug:slug>', views.ViewNotes.as_view(), name='notes'),
+    path('notes/<str:uid>/<slug:slug>',
+         views.ViewNotes.as_view(), name='notes'),
     path('check/password/<str:uid>',
          views.check_notes_password, name="check-password"),
     path('add-notes/<int:pk>', views.CreateNotes.as_view(), name='add-note'),
     path('edit-notes/<int:pk>/<int:note_id>/',
-         views.EditNote.as_view(), name='edit-note')
+         views.EditNote.as_view(), name='edit-note'),
+    path('notes/<str:note_id>/',
+         views.EditNotePublic.as_view(), name='edit-public-note')
 ]
